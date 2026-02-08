@@ -4,16 +4,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
 import com.spring.config.JwtTokenProvider;
+import com.spring.dto.UserRequestDto;
 import com.spring.model.User;
 import com.spring.service.UserService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -33,9 +33,8 @@ public class AuthController {
     }
     
     
-  
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User request) {
+    public ResponseEntity<?> register(@Valid @RequestBody UserRequestDto request){
         try {
             // 1️⃣ Username uniqueness check
             if (userService.existsByUsername(request.getUsername())) {
@@ -50,6 +49,7 @@ public class AuthController {
             user.setPassword(passwordEncoder.encode(request.getPassword())); // Password encode
             user.setName(request.getName());        
             user.setEmail(request.getEmail());
+            user.setEnabled(true);         
 
             // 3️⃣ Save user
             User savedUser = userService.save(user);
@@ -107,22 +107,10 @@ public class AuthController {
         }
     }
     
-    
-    
-    
-
-//    @PostMapping("/logout")
-//    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "User logged out successfully. Please discard token on client side.");
-//        return ResponseEntity.ok(response);
-//    }
-    
     @PostMapping("/logout")
     public ResponseEntity<?> logout(
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
-
-        // JWT stateless → server-side কিছু invalidate করার দরকার নেই
+     
         return ResponseEntity.ok(Map.of(
                 "message", "Logout successful. Please remove token from client."
         ));
